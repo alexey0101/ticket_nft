@@ -10,21 +10,25 @@ describe("TicketNFT", function () {
         ticketNFT = await TicketNFT.deploy();
     });
 
-    it("Should create an event and a ticket", async function () {
+    it("Should allow any user to create an event and a ticket", async function () {
         const eventName = "Concert";
         const eventDate = "2023-07-01";
         const eventLocation = "New York";
 
-        await ticketNFT.createEvent(eventName, eventDate, eventLocation);
+        // addr1 creates an event
+        await ticketNFT.connect(addr1).createEvent(eventName, eventDate, eventLocation);
 
         const eventId = 1;
         const eventDetails = await ticketNFT.getEventDetails(eventId);
         expect(eventDetails.name).to.equal(eventName);
         expect(eventDetails.date).to.equal(eventDate);
         expect(eventDetails.location).to.equal(eventLocation);
+        expect(eventDetails.creator).to.equal(addr1.address);
 
         const ticketPrice = ethers.parseEther("1.0");
-        await ticketNFT.createTicket(eventId, ticketPrice);
+
+        // addr1 creates a ticket for the event
+        await ticketNFT.connect(addr1).createTicket(eventId, ticketPrice);
 
         const ticketId = 1;
         const ticket = await ticketNFT.getTicketDetails(ticketId);
@@ -33,38 +37,42 @@ describe("TicketNFT", function () {
         expect(ticket.isForSale).to.equal(true);
     });
 
-    it("Should purchase a ticket", async function () {
+    it("Should allow purchasing a ticket", async function () {
         const eventName = "Concert";
         const eventDate = "2023-07-01";
         const eventLocation = "New York";
 
-        await ticketNFT.createEvent(eventName, eventDate, eventLocation);
+        // addr1 creates an event and a ticket
+        await ticketNFT.connect(addr1).createEvent(eventName, eventDate, eventLocation);
         const eventId = 1;
         const ticketPrice = ethers.parseEther("1.0");
-        await ticketNFT.createTicket(eventId, ticketPrice);
+        await ticketNFT.connect(addr1).createTicket(eventId, ticketPrice);
 
         const ticketId = 1;
-        await ticketNFT.connect(addr1).purchaseTicket(ticketId, { value: ticketPrice });
+        await ticketNFT.connect(addr2).purchaseTicket(ticketId, { value: ticketPrice });
 
         const newOwner = await ticketNFT.ownerOf(ticketId);
-        expect(newOwner).to.equal(addr1.address);
+        expect(newOwner).to.equal(addr2.address);
 
         const updatedTicket = await ticketNFT.getTicketDetails(ticketId);
         expect(updatedTicket.isForSale).to.equal(false);
     });
 
-    it("Should set ticket for sale", async function () {
+    it("Should allow setting a ticket for sale", async function () {
         const eventName = "Concert";
         const eventDate = "2023-07-01";
         const eventLocation = "New York";
 
-        await ticketNFT.createEvent(eventName, eventDate, eventLocation);
+        // addr1 creates an event and a ticket
+        await ticketNFT.connect(addr1).createEvent(eventName, eventDate, eventLocation);
         const eventId = 1;
         const ticketPrice = ethers.parseEther("1.0");
-        await ticketNFT.createTicket(eventId, ticketPrice);
+        await ticketNFT.connect(addr1).createTicket(eventId, ticketPrice);
 
         const ticketId = 1;
-        await ticketNFT.connect(owner).setTicketForSale(ticketId, ticketPrice);
+
+        // addr1 sets the ticket for sale
+        await ticketNFT.connect(addr1).setTicketForSale(ticketId, ticketPrice);
         const ticket = await ticketNFT.getTicketDetails(ticketId);
         expect(ticket.isForSale).to.equal(true);
     });

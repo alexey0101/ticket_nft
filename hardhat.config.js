@@ -24,7 +24,7 @@ module.exports = {
       chainId: 1337,
       accounts: [
         // Replace with your Ganache accounts private keys
-        "0x5e201decd1def95ae66206eb41c4b95e35cc324ad6900634a03e8ad2544a5dcf"
+        "0x32b754b97bc889c70183df65698f55b37b27a88185fb13a8b155a878c7c1e725"
       ]
     }
   }
