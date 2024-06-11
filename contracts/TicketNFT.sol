@@ -29,7 +29,7 @@ contract TicketNFT is ERC721 {
 
     function createEvent(string memory name, string memory date, string memory location, uint256 ticketPrice, uint256 ticketsAvailable) public {
         require(ticketsAvailable > 0, "Tickets available should be greater than 0");
-        
+
         _eventIds.increment();
         uint256 newEventId = _eventIds.current();
 
@@ -90,5 +90,15 @@ contract TicketNFT is ERC721 {
         }
 
         return ticketIds;
+    }
+
+    function verifyOwnership(address owner, uint256 eventId) public view returns (bool) {
+        uint256[] memory ticketIds = getTicketsByOwner(owner);
+        for (uint256 i = 0; i < ticketIds.length; i++) {
+            if (ticketToEvent[ticketIds[i]] == eventId) {
+                return true;
+            }
+        }
+        return false;
     }
 }
